@@ -1,38 +1,151 @@
 <!DOCTYPE html>
-
 <html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <title>Template</title>
-    <meta
-      name="description"
-      content="A simple HTML5 Template for new projects."
-    />
-    <meta name="author" content="SitePoint" />
-
-    <meta property="og:title" content="A Basic HTML5 Template" />
-    <meta property="og:type" content="website" />
-    <meta
-      property="og:url"
-      content="https://www.sitepoint.com/a-basic-html5-template/"
-    />
-    <meta
-      property="og:description"
-      content="A simple HTML5 Template for new projects."
-    />
-    <meta property="og:image" content="image.png" />
-
-    <link rel="icon" href="./favicon.ico" />
-    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
-
-    <link rel="stylesheet" href="./css/styles.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Database Cleanup Report - Search Terms</title>
+    <link rel="stylesheet" href="css/database-cleanup.css" />
   </head>
-
   <body>
-    <div class="post-container"></div>
-    <script src="./js/scripts.js"></script>
+    <div class="container">
+      <div class="header">
+        <h1>📋 Database Cleanup Report</h1>
+        <p>Individual search terms requiring database corrections</p>
+      </div>
+
+      <div class="summary">
+        <h2>Executive Summary</h2>
+        <p>
+          This report identifies
+          <strong id="totalProblems">-</strong> individual search terms in the
+          database that are causing search failures. Each term is listed
+          separately with specific issues identified and recommended
+          corrections. The database administrator should review each entry and
+          apply the suggested fixes to improve search functionality.
+        </p>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-number" id="totalTerms">-</div>
+          <div>Total Problem Terms</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="criticalIssues">-</div>
+          <div>Critical Issues (20+)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="formattingIssues">-</div>
+          <div>Formatting Issues</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="totalImpact">-</div>
+          <div>Total Failed Searches</div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="searchFilter">Search Terms</label>
+            <input
+              type="text"
+              id="searchFilter"
+              placeholder="Search for specific terms..."
+            />
+          </div>
+          <div class="filter-group">
+            <label for="impactFilter">Impact Level</label>
+            <select id="impactFilter">
+              <option value="">All Impact Levels</option>
+              <option value="critical">Critical (20+)</option>
+              <option value="high">High (10-19)</option>
+              <option value="medium">Medium (5-9)</option>
+              <option value="low">Low (1-4)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="sortFilter">Sort By</label>
+            <select id="sortFilter">
+              <option value="impact">Impact (High to Low)</option>
+              <option value="alphabetical">Alphabetical</option>
+              <option value="category">Issue Type</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label
+            style="
+              font-weight: 600;
+              color: #555;
+              margin-bottom: 10px;
+              display: block;
+            "
+            >Filter by Issue Type</label
+          >
+          <div class="category-filters">
+            <button class="category-btn active" data-category="">
+              All Issues
+            </button>
+            <button class="category-btn" data-category="formatting">
+              Formatting
+            </button>
+            <button class="category-btn" data-category="incomplete">
+              Incomplete
+            </button>
+            <button class="category-btn" data-category="typo">Typos</button>
+            <button class="category-btn" data-category="spacing">
+              Spacing
+            </button>
+            <button class="category-btn" data-category="synonym">
+              Synonyms
+            </button>
+            <button class="category-btn" data-category="unknown">
+              Unknown
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-container">
+        <div class="results-header">
+          <div class="results-count" id="resultsCount">Loading...</div>
+          <div>
+            <button class="export-btn" onclick="exportCleanupReport()">
+              Export Cleanup Report
+            </button>
+            <button class="export-btn" onclick="exportSQLScript()">
+              Export SQL Script
+            </button>
+          </div>
+        </div>
+        <div class="results-table-container">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Current Term (Database)</th>
+                <th>Failed Searches</th>
+                <th>Issue Type</th>
+                <th>Specific Problems</th>
+                <th>Recommended Fix</th>
+                <th>Proposed Corrected Term</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr>
+                <td colspan="8" class="loading">
+                  Loading database cleanup report...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/database-cleanup.js"></script>
   </body>
 </html>
