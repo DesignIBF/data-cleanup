@@ -278,20 +278,38 @@ function updateStats() {
       ? Math.round((completedCount / allTerms.length) * 100)
       : 0;
 
-  document.getElementById("totalTerms").textContent = allTerms.length;
-  document.getElementById("totalErrors").textContent = totalErrors;
-  document.getElementById("missingPortfolio").textContent = missingPortfolio;
-  document.getElementById("seasonalAvailability").textContent =
-    seasonalAvailability;
-  document.getElementById("totalImpact").textContent = allTerms.reduce(
-    (sum, term) => sum + term.count,
-    0
+  // Update stats with null checks
+  const totalTermsEl = document.getElementById("totalTerms");
+  if (totalTermsEl) totalTermsEl.textContent = allTerms.length;
+
+  const totalErrorsEl = document.getElementById("totalErrors");
+  if (totalErrorsEl) totalErrorsEl.textContent = totalErrors;
+
+  const missingPortfolioEl = document.getElementById("missingPortfolio");
+  if (missingPortfolioEl) missingPortfolioEl.textContent = missingPortfolio;
+
+  const seasonalAvailabilityEl = document.getElementById(
+    "seasonalAvailability"
   );
-  document.getElementById("completedCount").textContent = completedCount;
-  document.getElementById(
-    "progressText"
-  ).textContent = `${progressPercent}% Complete`;
-  document.getElementById("progressFill").style.width = `${progressPercent}%`;
+  if (seasonalAvailabilityEl)
+    seasonalAvailabilityEl.textContent = seasonalAvailability;
+
+  const totalImpactEl = document.getElementById("totalImpact");
+  if (totalImpactEl)
+    totalImpactEl.textContent = allTerms.reduce(
+      (sum, term) => sum + term.count,
+      0
+    );
+
+  const completedCountEl = document.getElementById("completedCount");
+  if (completedCountEl) completedCountEl.textContent = completedCount;
+
+  const progressTextEl = document.getElementById("progressText");
+  if (progressTextEl)
+    progressTextEl.textContent = `${progressPercent}% Complete`;
+
+  const progressFillEl = document.getElementById("progressFill");
+  if (progressFillEl) progressFillEl.style.width = `${progressPercent}%`;
 
   // Log analytics to console
   if (allTerms.length > 0) {
@@ -338,9 +356,16 @@ function applyFilters() {
 
 function renderResults() {
   const tbody = document.getElementById("resultsBody");
-  document.getElementById(
-    "resultsCount"
-  ).textContent = `Showing ${filteredTerms.length} of ${allTerms.length} individual database entries`;
+  const resultsCount = document.getElementById("resultsCount");
+
+  if (!tbody) {
+    console.error("resultsBody element not found");
+    return;
+  }
+
+  if (resultsCount) {
+    resultsCount.textContent = `Showing ${filteredTerms.length} of ${allTerms.length} individual database entries`;
+  }
 
   if (filteredTerms.length === 0) {
     tbody.innerHTML =
@@ -517,15 +542,19 @@ function downloadFile(content, filename, type) {
 
 // Event listeners
 document.addEventListener("DOMContentLoaded", function () {
-  document
-    .getElementById("searchFilter")
-    .addEventListener("input", applyFilters);
-  document
-    .getElementById("impactFilter")
-    .addEventListener("change", applyFilters);
-  document
-    .getElementById("sortFilter")
-    .addEventListener("change", applyFilters);
+  const searchFilter = document.getElementById("searchFilter");
+  const impactFilter = document.getElementById("impactFilter");
+  const sortFilter = document.getElementById("sortFilter");
+
+  if (searchFilter) {
+    searchFilter.addEventListener("input", applyFilters);
+  }
+  if (impactFilter) {
+    impactFilter.addEventListener("change", applyFilters);
+  }
+  if (sortFilter) {
+    sortFilter.addEventListener("change", applyFilters);
+  }
 
   document.querySelectorAll(".category-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
@@ -1118,7 +1147,10 @@ function selectAllTerms(selectAll) {
 
 function clearSelection() {
   selectedTerms.clear();
-  document.getElementById("selectAll").checked = false;
+  const selectAllCheckbox = document.getElementById("selectAll");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.checked = false;
+  }
   updateBulkActionsVisibility();
   renderResults();
 }
@@ -1265,11 +1297,16 @@ function applyBulkCategory(category, action = "add") {
 // Setup bulk operations event listeners
 function setupBulkOperations() {
   // Select all checkbox
-  document
-    .getElementById("selectAll")
-    .addEventListener("change", function (event) {
+  const selectAllCheckbox = document.getElementById("selectAll");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener("change", function (event) {
       selectAllTerms(event.target.checked);
     });
+  } else {
+    console.warn(
+      "selectAll checkbox not found - bulk operations may not work properly"
+    );
+  }
 
   // Row selection checkboxes (delegated event handling)
   document.addEventListener("change", function (event) {
@@ -1444,4 +1481,170 @@ function closeBulkTermEditor() {
   if (editor) {
     editor.remove();
   }
+}
+// Bulk operations functionality
+function updateBulkActionsVisibility() {
+  const bulkActions = document.getElementById("bulkActions");
+  const bulkCount = document.getElementById("bulkCount");
+
+  if (bulkActions && bulkCount) {
+    if (selectedTerms.size > 0) {
+      bulkActions.style.display = "flex";
+      bulkCount.textContent = `${selectedTerms.size} selected`;
+    } else {
+      bulkActions.style.display = "none";
+    }
+  }
+}
+
+function toggleTermSelection(termId, isSelected) {
+  if (isSelected) {
+    selectedTerms.add(termId);
+  } else {
+    selectedTerms.delete(termId);
+  }
+  updateBulkActionsVisibility();
+  // Only update the specific row styling instead of full re-render
+  updateRowSelection(termId, isSelected);
+}
+
+function updateRowSelection(termId, isSelected) {
+  const row = document.querySelector(`tr[data-term-id="${termId}"]`);
+  if (row) {
+    if (isSelected) {
+      row.classList.add("selected");
+    } else {
+      row.classList.remove("selected");
+    }
+  }
+}
+
+function selectAllTerms(selectAll) {
+  if (selectAll) {
+    filteredTerms.forEach((term) => selectedTerms.add(term.id));
+  } else {
+    selectedTerms.clear();
+  }
+  updateBulkActionsVisibility();
+
+  // Update all visible checkboxes and row styling without full re-render
+  document.querySelectorAll(".row-select-checkbox").forEach((checkbox) => {
+    const termId = parseInt(checkbox.dataset.termId);
+    checkbox.checked = selectAll;
+    updateRowSelection(termId, selectAll);
+  });
+}
+
+function clearSelection() {
+  selectedTerms.clear();
+  const selectAllCheckbox = document.getElementById("selectAll");
+  if (selectAllCheckbox) {
+    selectAllCheckbox.checked = false;
+  }
+  updateBulkActionsVisibility();
+  renderResults();
+}
+
+function bulkMarkComplete() {
+  selectedTerms.forEach((termId) => {
+    completedTerms.add(termId);
+  });
+
+  // Keep selection after applying changes
+  updateStats();
+  renderResults();
+  debouncedSave();
+}
+// Export functions
+function exportCleanupReport() {
+  const csvContent = [
+    [
+      "ID",
+      "Fixed",
+      "Current Database Term",
+      "Failed Searches",
+      "Issue Type",
+      "Specific Problems",
+      "Recommended Action",
+      "Proposed Corrected Term",
+      "Priority",
+    ],
+    ...allTerms.map((term, index) => {
+      const isCompleted = completedTerms.has(term.id);
+      const currentCategories = editedCategories.get(term.id) || [
+        term.category,
+      ];
+      const currentProposedTerm = editedTerms.get(term.id) || term.proposedTerm;
+
+      // Leave empty if no change needed or if it's the same as original
+      let proposedTermForExport = "";
+      if (
+        currentProposedTerm &&
+        currentProposedTerm !== "No change needed" &&
+        currentProposedTerm !== term.term
+      ) {
+        proposedTermForExport = currentProposedTerm;
+      }
+
+      return [
+        term.id,
+        isCompleted ? "Yes" : "No",
+        term.term,
+        term.count,
+        currentCategories.map(formatCategoryName).join(", "),
+        term.issues.join("; "),
+        term.suggestedFix,
+        proposedTermForExport,
+        term.priority.toUpperCase(),
+      ];
+    }),
+  ]
+    .map((row) => row.map((cell) => `"${cell}"`).join(","))
+    .join("\n");
+
+  downloadFile(csvContent, "database_cleanup_report.csv", "text/csv");
+}
+
+function exportSQLScript() {
+  const termsToFix = allTerms.filter((term) => {
+    const currentProposedTerm = editedTerms.get(term.id) || term.proposedTerm;
+    return (
+      term.term !== currentProposedTerm &&
+      currentProposedTerm !== "No change needed"
+    );
+  });
+
+  const sqlStatements = termsToFix
+    .map((term) => {
+      const currentProposedTerm = editedTerms.get(term.id) || term.proposedTerm;
+      const isCompleted = completedTerms.has(term.id) ? " -- COMPLETED" : "";
+      return `-- Fix: ${term.term} -> ${currentProposedTerm} (${
+        term.count
+      } failed searches)${isCompleted}\nUPDATE search_terms SET term = '${currentProposedTerm.replace(
+        /'/g,
+        "''"
+      )}' WHERE term = '${term.term.replace(/'/g, "''")}';`;
+    })
+    .join("\n\n");
+
+  const completedCount = termsToFix.filter((term) =>
+    completedTerms.has(term.id)
+  ).length;
+  const sqlContent = `-- Database Cleanup Script\n-- Generated: ${new Date().toISOString()}\n-- Total terms to fix: ${
+    termsToFix.length
+  }\n-- Completed: ${completedCount}\n-- Remaining: ${
+    termsToFix.length - completedCount
+  }\n\n${sqlStatements}`;
+
+  downloadFile(sqlContent, "search_terms_cleanup.sql", "text/sql");
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type: type });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
 }
