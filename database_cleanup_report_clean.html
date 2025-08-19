@@ -13,7 +13,7 @@
         <p>Individual search terms requiring database corrections</p>
       </div>
 
-      <div class="summary">
+      <!-- <div class="summary">
         <h2>Executive Summary</h2>
         <p>
           This report identifies
@@ -23,7 +23,7 @@
           corrections. The database administrator should review each entry and
           apply the suggested fixes to improve search functionality.
         </p>
-      </div>
+      </div> -->
 
       <div class="stats">
         <div class="stat-card">
@@ -31,16 +31,35 @@
           <div>Total Problem Terms</div>
         </div>
         <div class="stat-card">
-          <div class="stat-number" id="criticalIssues">-</div>
-          <div>Critical Issues (20+)</div>
+          <div class="stat-number" id="totalErrors">-</div>
+          <div>Total Errors</div>
+          <div class="stat-subtitle">
+            Formatting, Incomplete, Typos, Spacing, Synonyms
+          </div>
         </div>
         <div class="stat-card">
-          <div class="stat-number" id="formattingIssues">-</div>
-          <div>Formatting Issues</div>
+          <div class="stat-number" id="missingPortfolio">-</div>
+          <div>Missing Portfolio</div>
+          <div class="stat-subtitle">Missing Assortment, BBD</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="seasonalAvailability">-</div>
+          <div>Seasonality & Availability</div>
+          <div class="stat-subtitle">Seasonal, Not Available</div>
         </div>
         <div class="stat-card">
           <div class="stat-number" id="totalImpact">-</div>
           <div>Total Failed Searches</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="completedCount">-</div>
+          <div>Completed Items</div>
+        </div>
+        <div class="stat-card progress-card">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-text" id="progressText">0% Complete</div>
         </div>
       </div>
 
@@ -101,6 +120,16 @@
             <button class="category-btn" data-category="synonym">
               Synonyms
             </button>
+            <button class="category-btn" data-category="missing-assortment">
+              Missing Assortment
+            </button>
+            <button class="category-btn" data-category="bbd">BBD</button>
+            <button class="category-btn" data-category="seasonal">
+              Seasonal
+            </button>
+            <button class="category-btn" data-category="not-available">
+              Not Available
+            </button>
             <button class="category-btn" data-category="unknown">
               Unknown
             </button>
@@ -111,7 +140,26 @@
       <div class="results-container">
         <div class="results-header">
           <div class="results-count" id="resultsCount">Loading...</div>
-          <div>
+          <div class="header-actions">
+            <div class="bulk-actions" id="bulkActions" style="display: none">
+              <span class="bulk-count" id="bulkCount">0 selected</span>
+              <button class="bulk-btn" onclick="bulkMarkComplete()">
+                Mark Complete
+              </button>
+              <button class="bulk-btn" onclick="showBulkCategoryMenu()">
+                Change Category
+              </button>
+              <button class="bulk-btn" onclick="showBulkTermEditor()">
+                Edit Terms
+              </button>
+              <button class="bulk-btn secondary" onclick="clearSelection()">
+                Clear
+              </button>
+            </div>
+            <div class="firebase-status" id="firebaseStatus">
+              <span class="status-indicator" id="statusIndicator">●</span>
+              <span id="statusText">Checking Firebase...</span>
+            </div>
             <button class="export-btn" onclick="exportCleanupReport()">
               Export Cleanup Report
             </button>
@@ -124,6 +172,15 @@
           <table class="results-table">
             <thead>
               <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    id="selectAll"
+                    class="select-all-checkbox"
+                  />
+                  <label for="selectAll" class="select-all-label">Select</label>
+                </th>
+                <th>Fixed</th>
                 <th>#</th>
                 <th>Current Term (Database)</th>
                 <th>Failed Searches</th>
@@ -136,7 +193,7 @@
             </thead>
             <tbody id="resultsBody">
               <tr>
-                <td colspan="8" class="loading">
+                <td colspan="10" class="loading">
                   Loading database cleanup report...
                 </td>
               </tr>
@@ -146,6 +203,42 @@
       </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+        onSnapshot,
+        collection,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+      // Your Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCVbGeeno9ad0flwgZFzvPVFR9FfeTKkmU",
+        authDomain: "data-cleanup-55d94.firebaseapp.com",
+        projectId: "data-cleanup-55d94",
+        storageBucket: "data-cleanup-55d94.firebasestorage.app",
+        messagingSenderId: "252391279499",
+        appId: "1:252391279499:web:e6cf57222358464311fd8e",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Make Firebase available globally
+      window.firebaseDB = db;
+      window.firebaseDoc = doc;
+      window.firebaseSetDoc = setDoc;
+      window.firebaseGetDoc = getDoc;
+      window.firebaseOnSnapshot = onSnapshot;
+      window.firebaseCollection = collection;
+      window.firebaseUpdateDoc = updateDoc;
+    </script>
     <script src="js/database-cleanup.js"></script>
   </body>
 </html>
